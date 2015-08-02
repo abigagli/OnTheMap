@@ -109,9 +109,14 @@ class LoginViewController: UIViewController {
         self.loginTopConstraint.constant -= self.view.bounds.size.height
         self.loginBottomConstraint.constant += self.view.bounds.size.height
         
-        UIView.animateWithDuration(1.0){
+        
+        UIView.animateWithDuration(1.0, animations: {
             self.view.layoutIfNeeded()
             }
+            //CodeReview: Help the user setting username as first responder
+            , completion: { _ in
+                self.usernameTextField.becomeFirstResponder()
+        })
     }
     
     override func viewDidLoad() {

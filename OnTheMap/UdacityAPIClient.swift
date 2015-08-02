@@ -32,6 +32,12 @@ class UdacityAPIClient {
     
     func authenticate(username: String, password: String, completionHandler: (success: Bool, errorString: String?) -> Void) {
         
+        if !Utils.isConnectedToNetwork() {
+            
+            completionHandler (success: false, errorString: "Network is not available")
+            return
+        }
+
         let request = NSMutableURLRequest(URL: NSURL(string: Constants.BaseURL + Methods.Session)!)
         request.HTTPMethod = "POST"
         request.addValue(Constants.JSONType, forHTTPHeaderField: "Accept")
@@ -80,7 +86,55 @@ class UdacityAPIClient {
     
     }
     
+    //CodeReview: Implemented proper logout invocation
+    func logoutUser(completionHandler: (success: Bool, errorString: String?) -> Void) {
+        
+        if !Utils.isConnectedToNetwork() {
+            completionHandler (success: false, errorString: "Network is not available")
+            return
+        }
+        
+        let request = NSMutableURLRequest(URL: NSURL(string: Constants.BaseURL + Methods.Session)!)
+        request.HTTPMethod = "DELETE"
+        
+        var xsrfCookie: NSHTTPCookie? = nil
+        let sharedCookieStorage = NSHTTPCookieStorage.sharedHTTPCookieStorage()
+        for cookie in sharedCookieStorage.cookies as! [NSHTTPCookie] {
+            if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
+        }
+        if let xsrfCookie = xsrfCookie {
+            request.setValue(xsrfCookie.value!, forHTTPHeaderField: "X-XSRF-TOKEN")
+        }
+        
+        let session = NSURLSession.sharedSession()
+        let task = session.dataTaskWithRequest(request) { data, response, error in
+            if error != nil { //API INVOCATION FAILURE
+                completionHandler(success: false, errorString: UdacityAPIClient.apiFailedMessage (Methods.Session, error.description))
+            } else {
+                let dataSubset = data.subdataWithRange(NSMakeRange(5, data.length - 5)) /* Skip first 5 chars of response */
+                
+                Utils.jsonizeData(dataSubset, andPassTo: { (result, error) -> Void in
+                    if error == nil { //JSON parsing OK
+                        //Callback into the completion handler for a successful logout
+                        completionHandler(success: true, errorString: nil)
+                    }
+                    else { //JSON parsing FAILED
+                        completionHandler(success: false, errorString: "Failed parsing " + Methods.Session + " response: " + error!.description)
+                    }
+                })
+            }
+        }
+        task.resume()
+        
+    }
+    
     func getPublicUserData(completionHandler: (success: Bool, errorString: String?) -> Void) {
+        if !Utils.isConnectedToNetwork() {
+            
+            completionHandler (success: false, errorString: "Network is not available")
+            return
+        }
+        
         let request = NSMutableURLRequest(URL: NSURL(string: Constants.BaseURL + Methods.Users + user.uniqueKey)!)
         let session = NSURLSession.sharedSession()
         let task = session.dataTaskWithRequest(request) { data, response, error in

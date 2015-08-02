@@ -9,14 +9,15 @@
 import Foundation
 
 struct StudentInformation{
-    var objectId:String?
-    var uniqueKey:String?
-    var firstName:String?
-    var lastName:String?
-    var mapString:String?
-    var mediaURL:String?
-    var latitude:Double?
-    var longitude:Double?
+    var objectId: String?
+    var uniqueKey: String?
+    var firstName: String?
+    var lastName: String?
+    var mapString: String?
+    var mediaURL: String?
+    var latitude: Double?
+    var longitude: Double?
+    var updatedAt: NSDate?
     
     init(dictionary: NSDictionary) {
         objectId = dictionary["objectId"] as? String
@@ -28,6 +29,12 @@ struct StudentInformation{
         latitude = dictionary["latitude"] as? Double
         longitude = dictionary["longitude"] as? Double
         uniqueKey = dictionary["uniqueKey"] as? String
+        //CodeReview: Add a field for the updatedAt value to allow sorting the array of students
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyy-MM-dd'T'HH:mm:ss'.'SSSZ"
+        if let updatedString = dictionary["updatedAt"] as? String {
+            updatedAt = formatter.dateFromString(updatedString)
+        }
     }
     
     var fullName : String {

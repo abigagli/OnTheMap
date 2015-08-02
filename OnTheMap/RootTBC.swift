@@ -19,7 +19,26 @@ class RootTBC: UITabBarController {
     
     //MARK: Actions
     @IBAction func logoutUser(sender: UIBarButtonItem) {
-        self.dismissViewControllerAnimated(true, completion: nil)
+        self.busyStatusManager.setBusyStatus(true, disableUserInteraction: true)
+        
+        //CodeReview: Added invocation of http.delete on the udacity session API to invalidate current “XSRF_TOKEN”
+        UdacityAPIClient.sharedInstance.logoutUser{ (success, errorString) in
+            dispatch_async(dispatch_get_main_queue(), {
+                
+                self.busyStatusManager.setBusyStatus(false)
+                
+                //DOUBT: I'm not sure if denying logout in case of any error does really make sense here:
+                //Do I really have to remain stuck in the session if it cannot call home and tell the server
+                //I'm going away?
+        
+                if success {
+                    self.dismissViewControllerAnimated(true, completion: nil)
+
+                } else {
+                    Utils.alert(fromVC: self, withTitle:"Logout error", message: errorString!, completionHandler: nil)
+                }
+            })
+        }
     }
     
     @IBAction func refreshData() { //This is the one and only "source of truth", in the sense that it is the only point that downloads the latest positions and updates the model
@@ -80,16 +99,21 @@ class RootTBC: UITabBarController {
         self.busyStatusManager.setBusyStatus(true)
 
         
-        ParseAPIClient.sharedInstance.checkCurrentUserLocation { (success, error) -> Void in
+        ParseAPIClient.sharedInstance.checkCurrentUserLocation { (success, locationAlreadySubmitted, errorString) -> Void in
             dispatch_async(dispatch_get_main_queue(), {
                 self.busyStatusManager.setBusyStatus(false)
                 pinButton?.enabled = true
                 
                 if success {
-                    self.showOverwriteAlert()
+                    if locationAlreadySubmitted {
+                        self.showOverwriteAlert()
+                    }
+                    else {
+                        self.showPostLocationViewController(overwritingLocation: false)
+                    }
                 }
                 else {
-                    self.showPostLocationViewController(overwritingLocation: false)
+                    Utils.alert(fromVC: self, withTitle: "Location Query Error", message: errorString!, completionHandler: nil)
                 }
             })
         }

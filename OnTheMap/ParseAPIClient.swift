@@ -22,6 +22,12 @@ class ParseAPIClient {
     
     func reloadStudentsInformation(limit: Int = 100, completionHandler: (success: Bool, errorString: String?) -> Void) {
         
+        if !Utils.isConnectedToNetwork() {
+            
+            completionHandler (success: false, errorString: "Network is not available")
+            return
+        }
+        
         var tempStudents = [StudentInformation]()
 
         let methodParams = [
@@ -40,7 +46,10 @@ class ParseAPIClient {
                             let info = StudentInformation(dictionary: result as! NSDictionary)
                             tempStudents.append(info)
                         }
-                        self.students = tempStudents
+                        
+                        //CodeReview: order by "updateAt" field so that list view will have most recents on top
+                        self.students = tempStudents.sorted{$0.updatedAt!.compare($1.updatedAt!) == NSComparisonResult.OrderedDescending}
+                        
                         self.lastStudentsUpdate = NSDate().timeIntervalSince1970
                         completionHandler(success: true, errorString: nil)
                     }
@@ -54,8 +63,15 @@ class ParseAPIClient {
         task.resume()
     }
     
-    func checkCurrentUserLocation(completionHandler: (success: Bool, errorString: String?) -> Void) {
+    
+    func checkCurrentUserLocation(completionHandler: (success: Bool, locationAlreadySubmitted: Bool, errorString: String?) -> Void) {
         
+        if !Utils.isConnectedToNetwork() {
+            
+            completionHandler (success: false, locationAlreadySubmitted: false, errorString: "Network is not available")
+            return
+        }
+
         let methodParams = [
             "where" : "{\"uniqueKey\":\"\(UdacityAPIClient.sharedInstance.user.uniqueKey)\"}"
         ]
@@ -63,20 +79,24 @@ class ParseAPIClient {
         let task = taskForGETMethod (Methods.StudentLocation, parameters: methodParams) { data, response, error in
 
             if error != nil { //API INVOCATION FAILURE
-                completionHandler(success: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error.description))
+                completionHandler(success: false, locationAlreadySubmitted: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error.description))
             }
             else {
                 Utils.jsonizeData(data, andPassTo: { (result, error) -> Void in
-                    if let
-                        results = result["results"] as? [[String : AnyObject]],
-                        objectID = results[0]["objectId"] as? String {
-                            
-                            self.objectID = objectID
-                            completionHandler(success: true, errorString: nil)
+                    if error == nil { //JSON Parsing OK
+                        if let
+                            results = result["results"] as? [[String : AnyObject]],
+                            objectID = results[0]["objectId"] as? String { //Current user has already posted a location
+                                
+                                self.objectID = objectID
+                                completionHandler(success: true, locationAlreadySubmitted: true, errorString: nil)
+                        }
+                        else { //No previous location for current user
+                            completionHandler(success: true, locationAlreadySubmitted: false, errorString: nil)
+                        }
                     }
-                    else {
-                        //We can get here both because jsonize failed itself, or because we can't get the results array out of the parsed json. In either case it means we couldn't obtain the data we were looking for...
-                        completionHandler(success: false, errorString: "Failed querying student location")
+                    else { //JSON parsing FAILED
+                        completionHandler(success: false, locationAlreadySubmitted: false, errorString: "Failed querying student location: " + error!.description)
                     }
                 })
             }
@@ -86,6 +106,12 @@ class ParseAPIClient {
 
     func postStudentLocation(mapString: String, location: CLLocation, mediaURL: String, completionHandler: (success: Bool, errorString: String?) -> Void) {
         
+        if !Utils.isConnectedToNetwork() {
+            
+            completionHandler (success: false, errorString: "Network is not available")
+            return
+        }
+
         var request = NSMutableURLRequest(URL: NSURL(string: Constants.BaseURL + Methods.StudentLocation)!)
         
         request.HTTPMethod = "POST"
@@ -125,6 +151,12 @@ class ParseAPIClient {
     
     func updateStudentLocation(mapString: String, location: CLLocation, mediaURL: String, completionHandler: (success: Bool, errorString: String?) -> Void) {
         
+        if !Utils.isConnectedToNetwork() {
+            
+            completionHandler (success: false, errorString: "Network is not available")
+            return
+        }
+
         var request = NSMutableURLRequest(URL: NSURL(string: Constants.BaseURL + Methods.StudentLocation + "/\(self.objectID)")!)
         
         request.HTTPMethod = "PUT"
