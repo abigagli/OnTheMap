@@ -14,7 +14,13 @@ class Utils {
         
         var parsingError: NSError? = nil
         
-        let parsedResult: AnyObject? = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &parsingError)
+        let parsedResult: AnyObject?
+        do {
+            parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments)
+        } catch let error as NSError {
+            parsingError = error
+            parsedResult = nil
+        }
         
         if parsingError != nil {
             completionHandler(result: nil, error: parsingError)
@@ -36,11 +42,11 @@ class Utils {
             
         }
         
-        return (!urlVars.isEmpty ? "?" : "") + join("&", urlVars)
+        return (!urlVars.isEmpty ? "?" : "") + urlVars.joinWithSeparator("&")
     }
     
-    class func alert(#fromVC: UIViewController, withTitle title: String, message: String, completionHandler: ((UIAlertAction!) -> Void)?) -> UIAlertController {
-        var alertVC = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.Alert)
+    class func alert(fromVC fromVC: UIViewController, withTitle title: String, message: String, completionHandler: ((UIAlertAction!) -> Void)?) -> UIAlertController {
+        let alertVC = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.Alert)
         
         alertVC.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default, handler: completionHandler))
         

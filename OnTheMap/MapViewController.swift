@@ -20,7 +20,7 @@ class MapViewController: UIViewController {
         self.mapView.removeAnnotations(self.mapView.annotations)
         
         for student in ParseAPIClient.sharedInstance.students {
-            var studentLocationAnnotation = MKPointAnnotation()
+            let studentLocationAnnotation = MKPointAnnotation()
             studentLocationAnnotation.coordinate = CLLocationCoordinate2D(latitude: student.latitude!, longitude: student.longitude!)
             studentLocationAnnotation.title = student.fullName
 
@@ -45,7 +45,7 @@ class MapViewController: UIViewController {
 
 extension MapViewController: MKMapViewDelegate
 {
-        func mapView(mapView: MKMapView!, viewForAnnotation annotation: MKAnnotation!) -> MKAnnotationView! {
+        func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView! {
         
         let reuseId = "studentLocationPin"
         
@@ -54,7 +54,7 @@ extension MapViewController: MKMapViewDelegate
             pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
             pinView!.canShowCallout = true
             pinView!.pinColor = .Red
-            pinView!.rightCalloutAccessoryView = UIButton.buttonWithType(UIButtonType.DetailDisclosure) as! UIButton
+            pinView!.rightCalloutAccessoryView = UIButton(type: UIButtonType.DetailDisclosure)
             
         }
         else {
@@ -64,7 +64,7 @@ extension MapViewController: MKMapViewDelegate
         return pinView
     }
     
-    func mapView(mapView: MKMapView!, annotationView: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+    func mapView(mapView: MKMapView, annotationView: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
         
         if control == annotationView.rightCalloutAccessoryView {
             UIApplication.sharedApplication().openURL(NSURL(string: annotationView.annotation.subtitle!)!)

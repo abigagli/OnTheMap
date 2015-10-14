@@ -146,7 +146,7 @@ class RootTBC: UITabBarController {
         self.presentViewController(alert, animated: true, completion: nil)
     }
  
-    private func showPostLocationViewController(#overwritingLocation: Bool) {
+    private func showPostLocationViewController(overwritingLocation overwritingLocation: Bool) {
         let controller = self.storyboard!.instantiateViewControllerWithIdentifier("PostLocationVC") as! PostLocationViewController
         controller.doUpdateInsteadOfCreate = overwritingLocation
         self.navigationController!.presentViewController(controller, animated: true, completion: nil)

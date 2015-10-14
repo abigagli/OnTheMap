@@ -52,7 +52,12 @@ class UdacityAPIClient {
         ]
         
         var jsonifyError: NSError? = nil
-        request.HTTPBody = NSJSONSerialization.dataWithJSONObject(jsonBody, options: nil, error: &jsonifyError)
+        do {
+            request.HTTPBody = try NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
+        } catch var error as NSError {
+            jsonifyError = error
+            request.HTTPBody = nil
+        }
         
         let session = NSURLSession.sharedSession()
         let task = session.dataTaskWithRequest(request) { data, response, error in
@@ -103,7 +108,7 @@ class UdacityAPIClient {
             if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
         }
         if let xsrfCookie = xsrfCookie {
-            request.setValue(xsrfCookie.value!, forHTTPHeaderField: "X-XSRF-TOKEN")
+            request.setValue(xsrfCookie.value, forHTTPHeaderField: "X-XSRF-TOKEN")
         }
         
         let session = NSURLSession.sharedSession()

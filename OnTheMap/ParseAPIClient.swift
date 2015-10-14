@@ -48,7 +48,7 @@ class ParseAPIClient {
                         }
                         
                         //CodeReview: order by "updateAt" field so that list view will have most recents on top
-                        self.students = tempStudents.sorted{$0.updatedAt!.compare($1.updatedAt!) == NSComparisonResult.OrderedDescending}
+                        self.students = tempStudents.sort{$0.updatedAt!.compare($1.updatedAt!) == NSComparisonResult.OrderedDescending}
                         
                         self.lastStudentsUpdate = NSDate().timeIntervalSince1970
                         completionHandler(success: true, errorString: nil)
@@ -134,7 +134,7 @@ class ParseAPIClient {
                             
                             self.objectID = objectID
 
-                            println ("Posted location for \(self.objectID) at: \(successfulPost)")
+                            print ("Posted location for \(self.objectID) at: \(successfulPost)")
                             
                             self.lastStudentsUpdate = NSDate().timeIntervalSince1970
                             completionHandler(success: true, errorString: nil)
@@ -176,7 +176,7 @@ class ParseAPIClient {
                         putResult = result as? [String : AnyObject],
                         successfulUpdate = putResult["updatedAt"] as? String {
                             
-                            println ("Updated location at: \(successfulUpdate)")
+                            print ("Updated location at: \(successfulUpdate)")
                             
                             self.lastStudentsUpdate = NSDate().timeIntervalSince1970
                             completionHandler(success: true, errorString: nil)
@@ -222,7 +222,12 @@ class ParseAPIClient {
         ]
         
         var jsonifyError: NSError? = nil
-        request.HTTPBody = NSJSONSerialization.dataWithJSONObject(jsonBody, options: nil, error: &jsonifyError)
+        do {
+            request.HTTPBody = try NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
+        } catch let error as NSError {
+            jsonifyError = error
+            request.HTTPBody = nil
+        }
     }
 }
 
