@@ -24,10 +24,10 @@ class PostLocationViewController: UIViewController {
     @IBOutlet weak var browseURLButton: UIButton!
     
     @IBAction func browseToURL() {
-        var mediaURL = self.linkTextField.text.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
-        
-        //No need to check for validity, as the UI guarantees we can only activate this button if the link is somewhat valid...
-        UIApplication.sharedApplication().openURL(NSURL(string: mediaURL)!)
+        if let mediaURL = self.linkTextField.text!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet()) {
+            //No need to check for validity, as the UI guarantees we can only activate this button if the link is somewhat valid...
+            UIApplication.sharedApplication().openURL(NSURL(string: mediaURL)!)
+        }
     }
 
     @IBAction func stopTextInput(sender: UITapGestureRecognizer) {
@@ -42,7 +42,7 @@ class PostLocationViewController: UIViewController {
     
     @IBAction func findOnTheMapTapped(sender: AnyObject) {
         
-        var geoCoder = CLGeocoder()
+        let geoCoder = CLGeocoder()
         
         self.busyStatusManager.setBusyStatus(true, disableUserInteraction: true)
         
@@ -68,11 +68,11 @@ class PostLocationViewController: UIViewController {
                     self.mapString = self.locationTextView.text
                     
                     //Process placemarks
-                    for placemark in placemarks
+                    for placemark in placemarks!
                     {
-                        self.userLocation = (placemark as! CLPlacemark).location
+                        self.userLocation = placemark.location
                         
-                        var userLocationAnnotation = MKPointAnnotation()
+                        let userLocationAnnotation = MKPointAnnotation()
                         userLocationAnnotation.coordinate = self.userLocation!.coordinate
                         
                         self.mapView.addAnnotation(userLocationAnnotation)
@@ -81,12 +81,12 @@ class PostLocationViewController: UIViewController {
                         self.mapView.centerCoordinate = self.userLocation!.coordinate
                         
                         let miles = 5.0;
-                        var scalingFactor = abs((cos(2 * M_PI * self.userLocation!.coordinate.latitude / 360.0) ))
+                        let scalingFactor = abs((cos(2 * M_PI * self.userLocation!.coordinate.latitude / 360.0) ))
                         
-                        var span = MKCoordinateSpan(latitudeDelta: miles / 50.0, longitudeDelta: miles / (scalingFactor * 50.0))
+                        let span = MKCoordinateSpan(latitudeDelta: miles / 50.0, longitudeDelta: miles / (scalingFactor * 50.0))
                         
                         
-                        var region = MKCoordinateRegion(center: self.userLocation!.coordinate, span: span)
+                        let region = MKCoordinateRegion(center: self.userLocation!.coordinate, span: span)
                         
                         self.mapView.setRegion(region, animated: true)
                     }
@@ -106,8 +106,8 @@ class PostLocationViewController: UIViewController {
         
         self.busyStatusManager.setBusyStatus(true, disableUserInteraction: true)
         
-        var theURL = self.linkTextField.text.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
-        
+        guard let theURL = self.linkTextField.text!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet()) else {return}
+
         if self.doUpdateInsteadOfCreate == true { // We just update last student's known location
             ParseAPIClient.sharedInstance.updateStudentLocation(self.mapString, location: self.userLocation, mediaURL: theURL, completionHandler: { (success, errorString) -> Void in
                 dispatch_async(dispatch_get_main_queue(), {
@@ -263,15 +263,16 @@ extension PostLocationViewController: UITextFieldDelegate
         
         var enableSubmitButton = true
         
-        if textField.text.isEmpty {
+        if textField.text!.isEmpty {
             textField.text = PostLocationViewController.linkPlacheholder
             enableSubmitButton = false
         }
         else {
-            var mediaURL = textField.text.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
-            if !UIApplication.sharedApplication().canOpenURL(NSURL(string: mediaURL)!) {
-                Utils.alert(fromVC: self, withTitle: "Error", message: "Link is invalid. Please enter a valid URL", completionHandler: nil)
-                enableSubmitButton = false
+            if let mediaURL = textField.text!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet()) {
+                if !UIApplication.sharedApplication().canOpenURL(NSURL(string: mediaURL)!) {
+                    
+                    enableSubmitButton = false
+                }
             }
         }
         
@@ -285,13 +286,13 @@ extension PostLocationViewController: UITextFieldDelegate
     */
     func textField(textField: UITextField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
         
-        let currentString =  (textField.text as NSString).stringByReplacingCharactersInRange(range, withString: string)
+        _ =  (textField.text! as NSString).stringByReplacingCharactersInRange(range, withString: string)
         
-        var mediaURL = textField.text.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
-        
-        self.setButtonStatus (self.submitButton, enabled: UIApplication.sharedApplication().canOpenURL(NSURL(string: mediaURL)!))
-        self.setButtonStatus (self.browseURLButton, enabled: UIApplication.sharedApplication().canOpenURL(NSURL(string: mediaURL)!))
-        
+        if let mediaURL = textField.text!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet()) {
+            
+            self.setButtonStatus (self.submitButton, enabled: UIApplication.sharedApplication().canOpenURL(NSURL(string: mediaURL)!))
+            self.setButtonStatus (self.browseURLButton, enabled: UIApplication.sharedApplication().canOpenURL(NSURL(string: mediaURL)!))
+        }
         return true
     }
     

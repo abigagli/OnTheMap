@@ -45,7 +45,7 @@ class MapViewController: UIViewController {
 
 extension MapViewController: MKMapViewDelegate
 {
-        func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView! {
+        func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
         
         let reuseId = "studentLocationPin"
         
@@ -66,8 +66,10 @@ extension MapViewController: MKMapViewDelegate
     
     func mapView(mapView: MKMapView, annotationView: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
         
-        if control == annotationView.rightCalloutAccessoryView {
-            UIApplication.sharedApplication().openURL(NSURL(string: annotationView.annotation.subtitle!)!)
+        if let annotation = annotationView.annotation {
+            if control == annotationView.rightCalloutAccessoryView {
+                UIApplication.sharedApplication().openURL(NSURL(string: annotation.subtitle!!)!)
+            }
         }
     }
 }

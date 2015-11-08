@@ -37,10 +37,10 @@ class ParseAPIClient {
         let task = taskForGETMethod (Methods.StudentLocation, parameters: methodParams) { data, response, error in
             
             if error != nil { //API INVOCATION FAILURE
-                completionHandler(success: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error.description))
+                completionHandler(success: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error!.description))
             }
             else {
-                Utils.jsonizeData(data, andPassTo: { (result, error) -> Void in
+                Utils.jsonizeData(data!, andPassTo: { (result, error) -> Void in
                     if let results = result["results"] as? [AnyObject] {
                         for result in results {
                             let info = StudentInformation(dictionary: result as! NSDictionary)
@@ -79,10 +79,10 @@ class ParseAPIClient {
         let task = taskForGETMethod (Methods.StudentLocation, parameters: methodParams) { data, response, error in
 
             if error != nil { //API INVOCATION FAILURE
-                completionHandler(success: false, locationAlreadySubmitted: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error.description))
+                completionHandler(success: false, locationAlreadySubmitted: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error!.description))
             }
             else {
-                Utils.jsonizeData(data, andPassTo: { (result, error) -> Void in
+                Utils.jsonizeData(data!, andPassTo: { (result, error) -> Void in
                     if error == nil { //JSON Parsing OK
                         if let
                             results = result["results"] as? [[String : AnyObject]],
@@ -123,10 +123,10 @@ class ParseAPIClient {
         let task = session.dataTaskWithRequest(request) { data, response, error in
             
             if error != nil { //API INVOCATION FAILURE
-                completionHandler(success: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error.description))
+                completionHandler(success: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error!.description))
             }
             else {
-                Utils.jsonizeData(data, andPassTo: { (result, error) -> Void in
+                Utils.jsonizeData(data!, andPassTo: { (result, error) -> Void in
                     if let
                         postResult = result as? [String : AnyObject],
                         successfulPost = postResult["createdAt"] as? String,
@@ -168,10 +168,10 @@ class ParseAPIClient {
         let task = session.dataTaskWithRequest(request) { data, response, error in
             
             if error != nil { //API INVOCATION FAILURE
-                completionHandler(success: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error.description))
+                completionHandler(success: false, errorString: ParseAPIClient.apiFailedMessage(Methods.StudentLocation, error!.description))
             }
             else {
-                Utils.jsonizeData(data, andPassTo: { (result, error) -> Void in
+                Utils.jsonizeData(data!, andPassTo: { (result, error) -> Void in
                     if let
                         putResult = result as? [String : AnyObject],
                         successfulUpdate = putResult["updatedAt"] as? String {
@@ -190,7 +190,7 @@ class ParseAPIClient {
         task.resume()
     }
 
-    private func taskForGETMethod(method: String, parameters: [String : AnyObject], completionHandler: ((NSData!, NSURLResponse!, NSError!) -> Void)?) -> NSURLSessionDataTask {
+    private func taskForGETMethod(method: String, parameters: [String : AnyObject], completionHandler: ((NSData?, NSURLResponse?, NSError?) -> Void)) -> NSURLSessionDataTask {
 
         let urlString = Constants.BaseURL + method + "?" + Utils.escapedParameters(parameters)
         let url = NSURL(string: urlString)!
@@ -221,11 +221,9 @@ class ParseAPIClient {
             "longitude" : location.coordinate.longitude
         ]
         
-        var jsonifyError: NSError? = nil
         do {
             request.HTTPBody = try NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
-        } catch let error as NSError {
-            jsonifyError = error
+        } catch {
             request.HTTPBody = nil
         }
     }

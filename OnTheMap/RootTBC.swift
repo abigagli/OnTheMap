@@ -93,7 +93,7 @@ class RootTBC: UITabBarController {
     
     //MARK: Business Logic
     func checkForStudentLocation() {
-        let pinButton = (self.navigationItem.rightBarButtonItems?[1] as? UIBarButtonItem)
+        let pinButton = self.navigationItem.rightBarButtonItems?[1]
         pinButton?.enabled = false
         
         self.busyStatusManager.setBusyStatus(true)

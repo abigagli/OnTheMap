@@ -28,14 +28,14 @@ class LoginViewController: UIViewController {
         self.view.endEditing(true)
     }
     @IBAction func loginToUdacity(sender: UIButton) {
-        if self.usernameTextField.text.isEmpty {
+        if self.usernameTextField.text!.isEmpty {
             Utils.alert(fromVC: self, withTitle:"Error", message: "Missing Username", completionHandler: { (alertAction) -> Void in
                 self.usernameTextField.becomeFirstResponder()
             })
             return
         }
         
-        if self.passwordTextField.text.isEmpty {
+        if self.passwordTextField.text!.isEmpty {
             Utils.alert(fromVC: self, withTitle:"Error", message: "Missing Password", completionHandler: { (alertAction) -> Void in
                 self.passwordTextField.becomeFirstResponder()
             })
@@ -47,7 +47,7 @@ class LoginViewController: UIViewController {
         
         self.busyStatusManager.setBusyStatus(true, disableUserInteraction: true)
 
-        UdacityAPIClient.sharedInstance.authenticate(usernameTextField.text, password: passwordTextField.text) { (success, errorString) in
+        UdacityAPIClient.sharedInstance.authenticate(usernameTextField.text!, password: passwordTextField.text!) { (success, errorString) in
             dispatch_async(dispatch_get_main_queue(), {
                 
                 self.busyStatusManager.setBusyStatus(false)

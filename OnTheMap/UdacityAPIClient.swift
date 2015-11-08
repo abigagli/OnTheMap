@@ -51,20 +51,18 @@ class UdacityAPIClient {
             ]
         ]
         
-        var jsonifyError: NSError? = nil
         do {
             request.HTTPBody = try NSJSONSerialization.dataWithJSONObject(jsonBody, options: [])
-        } catch var error as NSError {
-            jsonifyError = error
+        } catch {
             request.HTTPBody = nil
         }
         
         let session = NSURLSession.sharedSession()
         let task = session.dataTaskWithRequest(request) { data, response, error in
             if error != nil { //API INVOCATION FAILURE
-                completionHandler(success: false, errorString: UdacityAPIClient.apiFailedMessage (Methods.Session, error.description))
+                completionHandler(success: false, errorString: UdacityAPIClient.apiFailedMessage (Methods.Session, error!.description))
             } else {
-                let dataSubset = data.subdataWithRange(NSMakeRange(5, data.length - 5)) /* Skip first 5 chars of response */
+                let dataSubset = data!.subdataWithRange(NSMakeRange(5, data!.length - 5)) /* Skip first 5 chars of response */
             
                 Utils.jsonizeData(dataSubset, andPassTo: { (result, error) -> Void in
                     
@@ -104,8 +102,11 @@ class UdacityAPIClient {
         
         var xsrfCookie: NSHTTPCookie? = nil
         let sharedCookieStorage = NSHTTPCookieStorage.sharedHTTPCookieStorage()
-        for cookie in sharedCookieStorage.cookies as! [NSHTTPCookie] {
-            if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
+        
+        if let cookies = sharedCookieStorage.cookies {
+            for cookie in cookies {
+                if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
+            }
         }
         if let xsrfCookie = xsrfCookie {
             request.setValue(xsrfCookie.value, forHTTPHeaderField: "X-XSRF-TOKEN")
@@ -114,9 +115,9 @@ class UdacityAPIClient {
         let session = NSURLSession.sharedSession()
         let task = session.dataTaskWithRequest(request) { data, response, error in
             if error != nil { //API INVOCATION FAILURE
-                completionHandler(success: false, errorString: UdacityAPIClient.apiFailedMessage (Methods.Session, error.description))
+                completionHandler(success: false, errorString: UdacityAPIClient.apiFailedMessage (Methods.Session, error!.description))
             } else {
-                let dataSubset = data.subdataWithRange(NSMakeRange(5, data.length - 5)) /* Skip first 5 chars of response */
+                let dataSubset = data!.subdataWithRange(NSMakeRange(5, data!.length - 5)) /* Skip first 5 chars of response */
                 
                 Utils.jsonizeData(dataSubset, andPassTo: { (result, error) -> Void in
                     if error == nil { //JSON parsing OK
@@ -144,10 +145,10 @@ class UdacityAPIClient {
         let session = NSURLSession.sharedSession()
         let task = session.dataTaskWithRequest(request) { data, response, error in
             if error != nil { //API INVOCATION FAILURE
-                completionHandler(success: false, errorString: UdacityAPIClient.apiFailedMessage (Methods.Users, error.description))
+                completionHandler(success: false, errorString: UdacityAPIClient.apiFailedMessage (Methods.Users, error!.description))
             }
             else {
-                let dataSubset = data.subdataWithRange(NSMakeRange(5, data.length - 5)) /* Skip first 5 chars of response */
+                let dataSubset = data!.subdataWithRange(NSMakeRange(5, data!.length - 5)) /* Skip first 5 chars of response */
                 
                 Utils.jsonizeData(dataSubset, andPassTo: { (result, error) -> Void in
                     if error == nil { //JSON parsing OK
