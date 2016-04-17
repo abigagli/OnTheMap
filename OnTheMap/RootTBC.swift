@@ -71,8 +71,8 @@ class RootTBC: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let addLocationButton = UIBarButtonItem(image: UIImage(named: "pin"), style: UIBarButtonItemStyle.Plain, target: self, action: "checkForStudentLocation")
-        let refreshButton = UIBarButtonItem(barButtonSystemItem: .Refresh, target: self, action: "refreshData")
+        let addLocationButton = UIBarButtonItem(image: UIImage(named: "pin"), style: UIBarButtonItemStyle.Plain, target: self, action: #selector(RootTBC.checkForStudentLocation))
+        let refreshButton = UIBarButtonItem(barButtonSystemItem: .Refresh, target: self, action: #selector(RootTBC.refreshData))
         
         self.navigationItem.rightBarButtonItems = [refreshButton, addLocationButton]
         
